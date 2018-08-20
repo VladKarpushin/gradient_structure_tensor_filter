@@ -52,21 +52,17 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 	//Mat Mat_e, Mat_v;
 	//eigen(img_test, Mat_e, Mat_v);
 
-	Mat imgCoherency;
-	//tmp1 = lambda1 - lambda2;
-	tmp2 = lambda1 + lambda2;
+	Mat imgCoherency;		// imgCoherency = (lambda1 - lambda2)/(lambda1 + lambda2))
 	absdiff(lambda1, lambda2, tmp1);
-	divide(tmp1, tmp2, imgCoherency);
+	divide(tmp1, lambda1 + lambda2, imgCoherency);
 
 	// orientation calculation (start)
 	// tan2Alpha = 2Gxy/(Gyy - Gxx)
 	// Alpha = 0.5 atan2(2Gxy/(Gyy - Gxx))
 	// tmp1 = (Gyy - Gxx);
 	// tmp2 = 2Gxy
-	tmp1 = imgDiffYYsmooth - imgDiffXXsmooth;
-	tmp2 = 2.0*imgDiffXYsmooth;
 	Mat imgPhase;
-	phase(tmp1, tmp2, imgPhase, true);
+	phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgPhase, true);
 	imgPhase = 0.5*imgPhase;
 	// orientation calculation (stop)
 
@@ -113,7 +109,8 @@ int main()
 	createTrackbar("LowThr", "control", &LowThr, 180);
 	createTrackbar("HighThr", "control", &HighThr, 180);
 
-	Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\6.bmp");
+	//Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\6.bmp");
+	Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
 	
 	Mat imgGray;
 	cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);

@@ -17,7 +17,7 @@ if size(img,3)==3
     img = rgb2gray(img);    
 end
 
-SizeRad = 21;
+SizeRad = 21;       %radius
 
 %****************************
 %*****GST calculation********

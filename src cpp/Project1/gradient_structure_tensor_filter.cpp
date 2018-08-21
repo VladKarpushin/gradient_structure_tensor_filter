@@ -142,6 +142,8 @@ int main()
         //if user press 'ESC' key
         if (iKey == 27)
         {
+			imwrite("input.jpg", imgGray);
+			imwrite("result.jpg", 0.5*(imgGray + imgBin));
             break;
         }
     }

@@ -19,7 +19,8 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     Mat img;
     inputImg.convertTo(img, CV_64F);
 
-    Mat imgDiffX, imgDiffY, imgDiffXY;
+	// eigenvalue calculation (start)
+	Mat imgDiffX, imgDiffY, imgDiffXY;
     Sobel(img, imgDiffX, CV_64F, 1, 0, 3);
     Sobel(img, imgDiffY, CV_64F, 0, 1, 3);
     multiply(imgDiffX, imgDiffY, imgDiffXY);
@@ -45,19 +46,21 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     Mat lambda1, lambda2;
     lambda1 = tmp1 + tmp4;
     lambda2 = tmp1 - tmp4;
+	// lambda1 = Gxx + Gyy + sqrt()
+	// lambda2 = Gxx + Gyy - sqrt()
+
+
+	// eigenvalue calculation (start)
 
     // Coherency calculation (start)
     // Coherency = (lambda1 - lambda2)/(lambda1 + lambda2))
     Mat imgCoherency;		
-    absdiff(lambda1, lambda2, tmp1);
-    divide(tmp1, lambda1 + lambda2, imgCoherency);
+    divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherency);
     // Coherency calculation (stop)
 
     // orientation calculation (start)
     // tan2Alpha = 2Gxy/(Gyy - Gxx)
     // Alpha = 0.5 atan2(2Gxy/(Gyy - Gxx))
-    // tmp1 = (Gyy - Gxx);
-    // tmp2 = 2Gxy
     Mat imgPhase;
     phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgPhase, true);
     imgPhase = 0.5*imgPhase;

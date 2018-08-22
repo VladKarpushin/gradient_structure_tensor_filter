@@ -98,7 +98,7 @@ int main()
 
     //Create track bar for Orientation thr
     int LowThr = 35;
-    int HighThr = 94;
+    int HighThr = 57;
     createTrackbar("LowThr", "control", &LowThr, 180);
     createTrackbar("HighThr", "control", &HighThr, 180);
 

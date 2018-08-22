@@ -39,22 +39,20 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     tmp2 = imgDiffXXsmooth - imgDiffYYsmooth;
     multiply(tmp2, tmp2, tmp2);
     multiply(imgDiffXYsmooth, imgDiffXYsmooth, tmp3);
-    tmp3 = 4.0 * tmp3;
-    tmp4 = tmp2 + tmp3;
+    tmp4 = tmp2 + 4.0 * tmp3;
     sqrt(tmp4, tmp4);
 
     Mat lambda1, lambda2;
-    lambda1 = tmp1 + tmp4;
-    lambda2 = tmp1 - tmp4;
-	// lambda1 = Gxx + Gyy + sqrt()
-	// lambda2 = Gxx + Gyy - sqrt()
-
-
-	// eigenvalue calculation (start)
+    lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
+    lambda2 = tmp1 - tmp4;		// smallest eigenvalue
+	// lambda1 = Gxx + Gyy + sqrt((Gxx-Gyy)^2 + 4Gxy^2)
+	// lambda2 = Gxx + Gyy - sqrt((Gxx-Gyy)^2 + 4Gxy^2)
+	// eigenvalue calculation (stop)
 
     // Coherency calculation (start)
-    // Coherency = (lambda1 - lambda2)/(lambda1 + lambda2))
-    Mat imgCoherency;		
+    // Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
+	// Coherency is anisotropy degree (consistency of local orientation)
+    Mat imgCoherency;
     divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherency);
     // Coherency calculation (stop)
 
@@ -94,18 +92,18 @@ int main()
     namedWindow("control", WINDOW_NORMAL);
 
     //Create track bar for W
-    int W = 17*2+1;
+    int W = 52;
     createTrackbar("W", "control", &W, 100);
     cvSetTrackbarMin("W", "control", 1);
 
     //Create track bar for thr
-    int C_Thr = 55;
+    int C_Thr = 43;
     createTrackbar("0.01*C_Thr", "control", &C_Thr, 100);
     cvSetTrackbarMin("0.01*C_Thr", "control", 0);
 
     //Create track bar for Orientation thr
-    int LowThr = 0;
-    int HighThr = 180;
+    int LowThr = 35;
+    int HighThr = 94;
     createTrackbar("LowThr", "control", &LowThr, 180);
     createTrackbar("HighThr", "control", &HighThr, 180);
 

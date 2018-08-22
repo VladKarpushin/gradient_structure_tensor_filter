@@ -52,33 +52,28 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     // Coherency calculation (start)
     // Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
 	// Coherency is anisotropy degree (consistency of local orientation)
-    Mat imgCoherency;
-    divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherency);
+    divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherencyOut);
     // Coherency calculation (stop)
 
     // orientation calculation (start)
     // tan2Alpha = 2Gxy/(Gyy - Gxx)
     // Alpha = 0.5 atan2(2Gxy/(Gyy - Gxx))
-    Mat imgPhase;
-    phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgPhase, true);
-    imgPhase = 0.5*imgPhase;
+    phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgOrientationOut, true);
+    imgOrientationOut = 0.5*imgOrientationOut;
     // orientation calculation (stop)
 
     double minVal, maxVal;
-    minMaxLoc(imgCoherency, &minVal, &maxVal);
-    cout << "imgCoherency minVal = " << minVal << ";    imgCoherency maxVal = " << maxVal << endl;
+    minMaxLoc(imgCoherencyOut, &minVal, &maxVal);
+    cout << "imgCoherencyOut minVal = " << minVal << ";    imgCoherencyOut maxVal = " << maxVal << endl;
 
     Scalar meanLambda1, meanLambda2;
     meanLambda1 = mean(lambda1);
     meanLambda2 = mean(lambda2);
     cout << "meanLambda1 = " << meanLambda1(0) << ";    meanLambda2 = " << meanLambda2(0) << endl;
 
-    minMaxLoc(imgPhase, &minVal, &maxVal);
-    cout << "imgPhase minVal = " << minVal << ";    imgPhase maxVal = " << maxVal << endl;
+    minMaxLoc(imgOrientationOut, &minVal, &maxVal);
+    cout << "imgOrientationOut minVal = " << minVal << ";    imgOrientationOut maxVal = " << maxVal << endl;
     cout << endl;
-
-    imgCoherencyOut = imgCoherency;
-    imgOrientationOut = imgPhase;
 }
 
 int main()

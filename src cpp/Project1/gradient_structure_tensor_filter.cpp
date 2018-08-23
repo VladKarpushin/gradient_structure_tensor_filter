@@ -1,10 +1,7 @@
-﻿// 2018-02-04.
-// Function calculates GST (gradient structure tensor)
-// 2018-02-05
-// fixed Gxy bug
-// 2018-02-08
-// added orientation estimation
-// added orientation binarization
+﻿/**
+* @brief You will learn how to segment an image by Gradient structure tensor (GST)
+* @author Karpushin Vladislav, karpushin@ngs.ru, https://github.com/VladKarpushin
+*/
 
 #include <iostream>
 #include "opencv2/imgproc.hpp"
@@ -39,8 +36,7 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     tmp2 = imgDiffXXsmooth - imgDiffYYsmooth;
     multiply(tmp2, tmp2, tmp2);
     multiply(imgDiffXYsmooth, imgDiffXYsmooth, tmp3);
-    tmp4 = tmp2 + 4.0 * tmp3;
-    sqrt(tmp4, tmp4);
+    sqrt(tmp2 + 4.0 * tmp3, tmp4);
 
     Mat lambda1, lambda2;
     lambda1 = tmp1 + tmp4;		// biggest eigenvalue 

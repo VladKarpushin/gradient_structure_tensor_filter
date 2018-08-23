@@ -27,9 +27,9 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     multiply(imgDiffY, imgDiffY, imgDiffYY);	
 
     Mat imgDiffXXsmooth, imgDiffYYsmooth, imgDiffXYsmooth;
-    boxFilter(imgDiffXX, imgDiffXXsmooth, CV_64F, Size(W, W));	// Gxx = imgDiffXXsmooth
-    boxFilter(imgDiffYY, imgDiffYYsmooth, CV_64F, Size(W, W));	// Gyy = imgDiffYYsmooth
-    boxFilter(imgDiffXY, imgDiffXYsmooth, CV_64F, Size(W, W));	// Gxy = imgDiffXYsmooth
+    boxFilter(imgDiffXX, imgDiffXXsmooth, CV_64F, Size(W, W));	// Jxx = imgDiffXXsmooth
+    boxFilter(imgDiffYY, imgDiffYYsmooth, CV_64F, Size(W, W));	// Jyy = imgDiffYYsmooth
+    boxFilter(imgDiffXY, imgDiffXYsmooth, CV_64F, Size(W, W));	// Jxy = imgDiffXYsmooth
 
     Mat tmp1, tmp2, tmp3, tmp4;
     tmp1 = imgDiffXXsmooth + imgDiffYYsmooth;
@@ -41,8 +41,8 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     Mat lambda1, lambda2;
     lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
     lambda2 = tmp1 - tmp4;		// smallest eigenvalue
-	// lambda1 = Gxx + Gyy + sqrt((Gxx-Gyy)^2 + 4Gxy^2)
-	// lambda2 = Gxx + Gyy - sqrt((Gxx-Gyy)^2 + 4Gxy^2)
+	// lambda1 = Jxx + Jyy + sqrt((Jxx-Jyy)^2 + 4Jxy^2)
+	// lambda2 = Jxx + Jyy - sqrt((Jxx-Jyy)^2 + 4Jxy^2)
 	// eigenvalue calculation (stop)
 
     // Coherency calculation (start)
@@ -52,8 +52,8 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     // Coherency calculation (stop)
 
     // orientation calculation (start)
-    // tan2Alpha = 2Gxy/(Gyy - Gxx)
-    // Alpha = 0.5 atan2(2Gxy/(Gyy - Gxx))
+    // tan2Alpha = 2Jxy/(Jyy - Jxx)
+    // Alpha = 0.5 atan2(2Jxy/(Jyy - Jxx))
     phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgOrientationOut, true);
     imgOrientationOut = 0.5*imgOrientationOut;
     // orientation calculation (stop)

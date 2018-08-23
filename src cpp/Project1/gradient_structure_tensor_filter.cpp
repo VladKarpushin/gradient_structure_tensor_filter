@@ -27,15 +27,15 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     multiply(imgDiffX, imgDiffX, imgDiffXX);	
     multiply(imgDiffY, imgDiffY, imgDiffYY);	
 
-    Mat J11, J22, J12;		// GST components
-    boxFilter(imgDiffXX, J11, CV_64F, Size(W, W));	// Jxx = J11
-    boxFilter(imgDiffYY, J22, CV_64F, Size(W, W));	// Jyy = J22
-    boxFilter(imgDiffXY, J12, CV_64F, Size(W, W));	// Jxy = J12
+    Mat J11, J22, J12;		// J11, J22 and J12 are GST components
+    boxFilter(imgDiffXX, J11, CV_64F, Size(W, W));
+    boxFilter(imgDiffYY, J22, CV_64F, Size(W, W));
+    boxFilter(imgDiffXY, J12, CV_64F, Size(W, W));
 	// GST components calculation (stop)
 
 	// eigenvalue calculation (start)
-	// lambda1 = Jxx + Jyy + sqrt((Jxx-Jyy)^2 + 4*Jxy^2)
-	// lambda2 = Jxx + Jyy - sqrt((Jxx-Jyy)^2 + 4*Jxy^2)
+	// lambda1 = J11 + J22 + sqrt((J11-J22)^2 + 4*J12^2)
+	// lambda2 = J11 + J22 - sqrt((J11-J22)^2 + 4*J12^2)
 	Mat tmp1, tmp2, tmp3, tmp4;
     tmp1 = J11 + J22;
     tmp2 = J11 - J22;
@@ -55,8 +55,8 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     // Coherency calculation (stop)
 
     // orientation angle calculation (start)
-    // tan(2*Alpha) = 2*Jxy/(Jyy - Jxx)
-    // Alpha = 0.5 atan2(2*Jxy/(Jyy - Jxx))
+    // tan(2*Alpha) = 2*J12/(J22 - J11)
+    // Alpha = 0.5 atan2(2*J12/(J22 - J11))
     phase(J22 - J11, 2.0*J12, imgOrientationOut, true);
     imgOrientationOut = 0.5*imgOrientationOut;
     // orientation angle calculation (stop)

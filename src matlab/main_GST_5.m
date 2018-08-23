@@ -1,5 +1,7 @@
 % 2018-02-05
 % Segmentation based on Gradient structure tensor (GST)
+% @brief You will learn how to segment an image by Gradient structure tensor (GST)
+% @author Karpushin Vladislav, karpushin@ngs.ru, https://github.com/VladKarpushin
 
 close all,clc,clear all;
 

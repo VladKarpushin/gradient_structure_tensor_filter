@@ -23,7 +23,6 @@ J22=sglad2(dimgY,win);                      % сглаживаем
 J12=sglad2(dimgXY,win);                     % сглаживаем
 % GST components calculation (stop)
 
-
 % orientation angle calculation (start)
 % tan(2*Alpha) = 2*J12/(J22 - J11)
 % Alpha = 0.5 atan2(2*J12/(J22 - J11))

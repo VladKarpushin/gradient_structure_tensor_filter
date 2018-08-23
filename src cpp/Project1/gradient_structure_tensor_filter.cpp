@@ -16,7 +16,8 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     Mat img;
     inputImg.convertTo(img, CV_64F);
 
-	// eigenvalue calculation (start)
+	// GST components calculation (start)
+	// J =	(J11 J12; J12 J22) - GST
 	Mat imgDiffX, imgDiffY, imgDiffXY;
     Sobel(img, imgDiffX, CV_64F, 1, 0, 3);
     Sobel(img, imgDiffY, CV_64F, 0, 1, 3);
@@ -26,23 +27,25 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     multiply(imgDiffX, imgDiffX, imgDiffXX);	
     multiply(imgDiffY, imgDiffY, imgDiffYY);	
 
-    Mat imgDiffXXsmooth, imgDiffYYsmooth, imgDiffXYsmooth;
-    boxFilter(imgDiffXX, imgDiffXXsmooth, CV_64F, Size(W, W));	// Jxx = imgDiffXXsmooth
-    boxFilter(imgDiffYY, imgDiffYYsmooth, CV_64F, Size(W, W));	// Jyy = imgDiffYYsmooth
-    boxFilter(imgDiffXY, imgDiffXYsmooth, CV_64F, Size(W, W));	// Jxy = imgDiffXYsmooth
+    Mat J11, J22, J12;		// GST components
+    boxFilter(imgDiffXX, J11, CV_64F, Size(W, W));	// Jxx = J11
+    boxFilter(imgDiffYY, J22, CV_64F, Size(W, W));	// Jyy = J22
+    boxFilter(imgDiffXY, J12, CV_64F, Size(W, W));	// Jxy = J12
+	// GST components calculation (stop)
 
-    Mat tmp1, tmp2, tmp3, tmp4;
-    tmp1 = imgDiffXXsmooth + imgDiffYYsmooth;
-    tmp2 = imgDiffXXsmooth - imgDiffYYsmooth;
+	// eigenvalue calculation (start)
+	// lambda1 = Jxx + Jyy + sqrt((Jxx-Jyy)^2 + 4*Jxy^2)
+	// lambda2 = Jxx + Jyy - sqrt((Jxx-Jyy)^2 + 4*Jxy^2)
+	Mat tmp1, tmp2, tmp3, tmp4;
+    tmp1 = J11 + J22;
+    tmp2 = J11 - J22;
     multiply(tmp2, tmp2, tmp2);
-    multiply(imgDiffXYsmooth, imgDiffXYsmooth, tmp3);
+    multiply(J12, J12, tmp3);
     sqrt(tmp2 + 4.0 * tmp3, tmp4);
 
     Mat lambda1, lambda2;
     lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
     lambda2 = tmp1 - tmp4;		// smallest eigenvalue
-	// lambda1 = Jxx + Jyy + sqrt((Jxx-Jyy)^2 + 4Jxy^2)
-	// lambda2 = Jxx + Jyy - sqrt((Jxx-Jyy)^2 + 4Jxy^2)
 	// eigenvalue calculation (stop)
 
     // Coherency calculation (start)
@@ -51,12 +54,12 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
     divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherencyOut);
     // Coherency calculation (stop)
 
-    // orientation calculation (start)
-    // tan2Alpha = 2Jxy/(Jyy - Jxx)
-    // Alpha = 0.5 atan2(2Jxy/(Jyy - Jxx))
-    phase(imgDiffYYsmooth - imgDiffXXsmooth, 2.0*imgDiffXYsmooth, imgOrientationOut, true);
+    // orientation angle calculation (start)
+    // tan(2*Alpha) = 2*Jxy/(Jyy - Jxx)
+    // Alpha = 0.5 atan2(2*Jxy/(Jyy - Jxx))
+    phase(J22 - J11, 2.0*J12, imgOrientationOut, true);
     imgOrientationOut = 0.5*imgOrientationOut;
-    // orientation calculation (stop)
+    // orientation angle calculation (stop)
 
     double minVal, maxVal;
     minMaxLoc(imgCoherencyOut, &minVal, &maxVal);

@@ -1,5 +1,5 @@
 ﻿/**
-* @brief You will learn how to segment an image by Gradient structure tensor (GST)
+* @brief You will learn how to segment an image by a gradient structure tensor (GST)
 * @author Karpushin Vladislav, karpushin@ngs.ru, https://github.com/VladKarpushin
 */
 
@@ -11,69 +11,7 @@
 using namespace cv;
 using namespace std;
 
-void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, int W)
-{
-    Mat img;
-    inputImg.convertTo(img, CV_64F);
-
-	// GST components calculation (start)
-	// J =	(J11 J12; J12 J22) - GST
-	Mat imgDiffX, imgDiffY, imgDiffXY;
-    Sobel(img, imgDiffX, CV_64F, 1, 0, 3);
-    Sobel(img, imgDiffY, CV_64F, 0, 1, 3);
-    multiply(imgDiffX, imgDiffY, imgDiffXY);
-
-    Mat imgDiffXX, imgDiffYY;
-    multiply(imgDiffX, imgDiffX, imgDiffXX);	
-    multiply(imgDiffY, imgDiffY, imgDiffYY);	
-
-    Mat J11, J22, J12;		// J11, J22 and J12 are GST components
-    boxFilter(imgDiffXX, J11, CV_64F, Size(W, W));
-    boxFilter(imgDiffYY, J22, CV_64F, Size(W, W));
-    boxFilter(imgDiffXY, J12, CV_64F, Size(W, W));
-	// GST components calculation (stop)
-
-	// eigenvalue calculation (start)
-	// lambda1 = J11 + J22 + sqrt((J11-J22)^2 + 4*J12^2)
-	// lambda2 = J11 + J22 - sqrt((J11-J22)^2 + 4*J12^2)
-	Mat tmp1, tmp2, tmp3, tmp4;
-    tmp1 = J11 + J22;
-    tmp2 = J11 - J22;
-    multiply(tmp2, tmp2, tmp2);
-    multiply(J12, J12, tmp3);
-    sqrt(tmp2 + 4.0 * tmp3, tmp4);
-
-    Mat lambda1, lambda2;
-    lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
-    lambda2 = tmp1 - tmp4;		// smallest eigenvalue
-	// eigenvalue calculation (stop)
-
-    // Coherency calculation (start)
-    // Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
-	// Coherency is anisotropy degree (consistency of local orientation)
-    divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherencyOut);
-    // Coherency calculation (stop)
-
-    // orientation angle calculation (start)
-    // tan(2*Alpha) = 2*J12/(J22 - J11)
-    // Alpha = 0.5 atan2(2*J12/(J22 - J11))
-    phase(J22 - J11, 2.0*J12, imgOrientationOut, true);
-    imgOrientationOut = 0.5*imgOrientationOut;
-    // orientation angle calculation (stop)
-
-    double minVal, maxVal;
-    minMaxLoc(imgCoherencyOut, &minVal, &maxVal);
-    cout << "imgCoherencyOut minVal = " << minVal << ";    imgCoherencyOut maxVal = " << maxVal << endl;
-
-    Scalar meanLambda1, meanLambda2;
-    meanLambda1 = mean(lambda1);
-    meanLambda2 = mean(lambda2);
-    cout << "meanLambda1 = " << meanLambda1(0) << ";    meanLambda2 = " << meanLambda2(0) << endl;
-
-    minMaxLoc(imgOrientationOut, &minVal, &maxVal);
-    cout << "imgOrientationOut minVal = " << minVal << ";    imgOrientationOut maxVal = " << maxVal << endl;
-    cout << endl;
-}
+void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, int w);
 
 int main()
 {
@@ -139,8 +77,77 @@ int main()
         {
 			imwrite("input.jpg", imgGray);
 			imwrite("result.jpg", 0.5*(imgGray + imgBin));
+
+			normalize(imgCoherency, imgCoherency, 0, 255, NORM_MINMAX);
+			normalize(imgOrientation, imgOrientation, 0, 255, NORM_MINMAX);
+			imwrite("Coherency.jpg", imgCoherency);
+			imwrite("Orientation.jpg", imgOrientation);
             break;
         }
     }
     return 0;
+}
+
+void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, int w)
+{
+	Mat img;
+	inputImg.convertTo(img, CV_64F);
+
+	// GST components calculation (start)
+	// J =	(J11 J12; J12 J22) - GST
+	Mat imgDiffX, imgDiffY, imgDiffXY;
+	Sobel(img, imgDiffX, CV_64F, 1, 0, 3);
+	Sobel(img, imgDiffY, CV_64F, 0, 1, 3);
+	multiply(imgDiffX, imgDiffY, imgDiffXY);
+
+	Mat imgDiffXX, imgDiffYY;
+	multiply(imgDiffX, imgDiffX, imgDiffXX);
+	multiply(imgDiffY, imgDiffY, imgDiffYY);
+
+	Mat J11, J22, J12;		// J11, J22 and J12 are GST components
+	boxFilter(imgDiffXX, J11, CV_64F, Size(w, w));
+	boxFilter(imgDiffYY, J22, CV_64F, Size(w, w));
+	boxFilter(imgDiffXY, J12, CV_64F, Size(w, w));
+	// GST components calculation (stop)
+
+	// eigenvalue calculation (start)
+	// lambda1 = J11 + J22 + sqrt((J11-J22)^2 + 4*J12^2)
+	// lambda2 = J11 + J22 - sqrt((J11-J22)^2 + 4*J12^2)
+	Mat tmp1, tmp2, tmp3, tmp4;
+	tmp1 = J11 + J22;
+	tmp2 = J11 - J22;
+	multiply(tmp2, tmp2, tmp2);
+	multiply(J12, J12, tmp3);
+	sqrt(tmp2 + 4.0 * tmp3, tmp4);
+
+	Mat lambda1, lambda2;
+	lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
+	lambda2 = tmp1 - tmp4;		// smallest eigenvalue
+								// eigenvalue calculation (stop)
+
+								// Coherency calculation (start)
+								// Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
+								// Coherency is anisotropy degree (consistency of local orientation)
+	divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherencyOut);
+	// Coherency calculation (stop)
+
+	// orientation angle calculation (start)
+	// tan(2*Alpha) = 2*J12/(J22 - J11)
+	// Alpha = 0.5 atan2(2*J12/(J22 - J11))
+	phase(J22 - J11, 2.0*J12, imgOrientationOut, true);
+	imgOrientationOut = 0.5*imgOrientationOut;
+	// orientation angle calculation (stop)
+
+	double minVal, maxVal;
+	minMaxLoc(imgCoherencyOut, &minVal, &maxVal);
+	cout << "imgCoherencyOut minVal = " << minVal << ";    imgCoherencyOut maxVal = " << maxVal << endl;
+
+	Scalar meanLambda1, meanLambda2;
+	meanLambda1 = mean(lambda1);
+	meanLambda2 = mean(lambda2);
+	cout << "meanLambda1 = " << meanLambda1(0) << ";    meanLambda2 = " << meanLambda2(0) << endl;
+
+	minMaxLoc(imgOrientationOut, &minVal, &maxVal);
+	cout << "imgOrientationOut minVal = " << minVal << ";    imgOrientationOut maxVal = " << maxVal << endl;
+	cout << endl;
 }

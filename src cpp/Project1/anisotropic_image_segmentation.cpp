@@ -15,81 +15,38 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 
 int main()
 {
-	namedWindow("imgOriginal", WINDOW_NORMAL);
-	namedWindow("Coherency", WINDOW_NORMAL);
-	namedWindow("Orientation", WINDOW_NORMAL);
-	namedWindow("OrientationBinary", WINDOW_NORMAL);
-	namedWindow("CoherencyBinary", WINDOW_NORMAL);
-	namedWindow("Mask", WINDOW_NORMAL);
-	namedWindow("control", WINDOW_NORMAL);
+	int W = 52;				// window size is WxW
+	double C_Thr = 0.43;	// threshold for coherency
+	int LowThr = 35;		// threshold1 for orientation
+	int HighThr = 57;		// threshold2 for orientation
 
-	//Create track bar for W
-	int W = 52;
-	createTrackbar("W", "control", &W, 100);
-	cvSetTrackbarMin("W", "control", 1);
-
-	//Create track bar for thr
-	int C_Thr = 43;
-	createTrackbar("0.01*C_Thr", "control", &C_Thr, 100);
-	cvSetTrackbarMin("0.01*C_Thr", "control", 0);
-
-	//Create track bar for Orientation thr
-	int LowThr = 35;
-	int HighThr = 57;
-	createTrackbar("LowThr", "control", &LowThr, 180);
-	createTrackbar("HighThr", "control", &HighThr, 180);
-
-	Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
+	//Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
+	Mat imgOriginal = imread("input.jpg");
 
 	Mat imgGray;
 	cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);
 
-	while (true)
-	{
-		//! [main]
-		Mat imgCoherency, imgOrientation;
-		calcGST(imgGray, imgCoherency, imgOrientation, W);
-
-		//! [thresholding]
-		Mat imgCoherencyBin;
-		imgCoherencyBin = imgCoherency > C_Thr / 100.0;
-		Mat imgOrientationBin;
-		inRange(imgOrientation, Scalar(LowThr), Scalar(HighThr), imgOrientationBin);
-		//! [thresholding]
-
-		//! [combining]
-		Mat imgBin;
-		imgBin = imgCoherencyBin & imgOrientationBin;
-		//! [combining]
-		//! [main]
-
-		normalize(imgCoherency, imgCoherency, 0, 1, NORM_MINMAX);
-		normalize(imgOrientation, imgOrientation, 0, 1, NORM_MINMAX);
-		imshow("imgOriginal", 0.5*(imgGray + imgBin));
-		imshow("Coherency", imgCoherency);
-		imshow("Orientation", imgOrientation);
-		imshow("CoherencyBinary", imgCoherencyBin);
-		imshow("OrientationBinary", imgOrientationBin);
-		imshow("Mask", imgBin);
-
-		// Wait until user press some key for 50ms
-		int iKey = waitKey(50);
-		//if user press 'ESC' key
-		if (iKey == 27)
-		{
-			imwrite("input.jpg", imgGray);
-			imwrite("result.jpg", 0.5*(imgGray + imgBin));
-
-			normalize(imgCoherency, imgCoherency, 0, 255, NORM_MINMAX);
-			normalize(imgOrientation, imgOrientation, 0, 255, NORM_MINMAX);
-			imwrite("Coherency.jpg", imgCoherency);
-			imwrite("Orientation.jpg", imgOrientation);
-			break;
-		}
-	}
+	//! [main]
+	Mat imgCoherency, imgOrientation;
+	calcGST(imgGray, imgCoherency, imgOrientation, W);
+	//! [thresholding]
+	Mat imgCoherencyBin;
+	imgCoherencyBin = imgCoherency > C_Thr;
+	Mat imgOrientationBin;
+	inRange(imgOrientation, Scalar(LowThr), Scalar(HighThr), imgOrientationBin);
+	//! [thresholding]
+	//! [combining]
+	Mat imgBin;
+	imgBin = imgCoherencyBin & imgOrientationBin;
+	//! [combining]
+	//! [main]
+	normalize(imgCoherency, imgCoherency, 0, 255, NORM_MINMAX);
+	normalize(imgOrientation, imgOrientation, 0, 255, NORM_MINMAX);
+	imwrite("result.jpg", 0.5*(imgGray + imgBin));
+	imwrite("Coherency.jpg", imgCoherency);
+	imwrite("Orientation.jpg", imgOrientation);
 	return 0;
 }
-
 //! [calcGST]
 void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, int w)
 {
@@ -128,9 +85,9 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 	lambda2 = tmp1 - tmp4;		// smallest eigenvalue
 								// eigenvalue calculation (stop)
 
-								// Coherency calculation (start)
-								// Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
-								// Coherency is anisotropy degree (consistency of local orientation)
+	// Coherency calculation (start)
+	// Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism
+	// Coherency is anisotropy degree (consistency of local orientation)
 	divide(lambda1 - lambda2, lambda1 + lambda2, imgCoherencyOut);
 	// Coherency calculation (stop)
 
@@ -140,18 +97,5 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 	phase(J22 - J11, 2.0*J12, imgOrientationOut, true);
 	imgOrientationOut = 0.5*imgOrientationOut;
 	// orientation angle calculation (stop)
-
-	double minVal, maxVal;
-	minMaxLoc(imgCoherencyOut, &minVal, &maxVal);
-	cout << "imgCoherencyOut minVal = " << minVal << ";    imgCoherencyOut maxVal = " << maxVal << endl;
-
-	Scalar meanLambda1, meanLambda2;
-	meanLambda1 = mean(lambda1);
-	meanLambda2 = mean(lambda2);
-	cout << "meanLambda1 = " << meanLambda1(0) << ";    meanLambda2 = " << meanLambda2(0) << endl;
-
-	minMaxLoc(imgOrientationOut, &minVal, &maxVal);
-	cout << "imgOrientationOut minVal = " << minVal << ";    imgOrientationOut maxVal = " << maxVal << endl;
-	cout << endl;
 }
 //! [calcGST]

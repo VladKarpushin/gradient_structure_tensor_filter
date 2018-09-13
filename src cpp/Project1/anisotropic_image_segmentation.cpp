@@ -20,15 +20,16 @@ int main()
 	int LowThr = 35;		// threshold1 for orientation
 	int HighThr = 57;		// threshold2 for orientation
 
-	//Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
-	Mat imgOriginal = imread("input.jpg");
-
-	Mat imgGray;
-	cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);
+	Mat imgIn = imread("input.jpg", IMREAD_GRAYSCALE);
+	if (imgIn.empty()) //check whether the image is loaded or not
+	{
+		cout << "ERROR : Image cannot be loaded..!!" << endl;
+		return -1;
+	}
 
 	//! [main]
 	Mat imgCoherency, imgOrientation;
-	calcGST(imgGray, imgCoherency, imgOrientation, W);
+	calcGST(imgIn, imgCoherency, imgOrientation, W);
 	//! [thresholding]
 	Mat imgCoherencyBin;
 	imgCoherencyBin = imgCoherency > C_Thr;
@@ -42,7 +43,7 @@ int main()
 	//! [main]
 	normalize(imgCoherency, imgCoherency, 0, 255, NORM_MINMAX);
 	normalize(imgOrientation, imgOrientation, 0, 255, NORM_MINMAX);
-	imwrite("result.jpg", 0.5*(imgGray + imgBin));
+	imwrite("result.jpg", 0.5*(imgIn + imgBin));
 	imwrite("Coherency.jpg", imgCoherency);
 	imwrite("Orientation.jpg", imgOrientation);
 	return 0;

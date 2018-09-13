@@ -1,5 +1,5 @@
 ﻿/**
-* @brief You will learn how to segment an image by a gradient structure tensor (GST)
+* @brief You will learn how to segment an anisotropic image with a single local orientation by a gradient structure tensor (GST)
 * @author Karpushin Vladislav, karpushin@ngs.ru, https://github.com/VladKarpushin
 */
 
@@ -15,66 +15,68 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 
 int main()
 {
-    namedWindow("imgOriginal", WINDOW_NORMAL);
-    namedWindow("Coherency", WINDOW_NORMAL);
-    namedWindow("Orientation", WINDOW_NORMAL);
-    namedWindow("OrientationBinary", WINDOW_NORMAL);
-    namedWindow("CoherencyBinary", WINDOW_NORMAL);
-    namedWindow("Mask", WINDOW_NORMAL);
-    namedWindow("control", WINDOW_NORMAL);
+	namedWindow("imgOriginal", WINDOW_NORMAL);
+	namedWindow("Coherency", WINDOW_NORMAL);
+	namedWindow("Orientation", WINDOW_NORMAL);
+	namedWindow("OrientationBinary", WINDOW_NORMAL);
+	namedWindow("CoherencyBinary", WINDOW_NORMAL);
+	namedWindow("Mask", WINDOW_NORMAL);
+	namedWindow("control", WINDOW_NORMAL);
 
-    //Create track bar for W
-    int W = 52;
-    createTrackbar("W", "control", &W, 100);
-    cvSetTrackbarMin("W", "control", 1);
+	//Create track bar for W
+	int W = 52;
+	createTrackbar("W", "control", &W, 100);
+	cvSetTrackbarMin("W", "control", 1);
 
-    //Create track bar for thr
-    int C_Thr = 43;
-    createTrackbar("0.01*C_Thr", "control", &C_Thr, 100);
-    cvSetTrackbarMin("0.01*C_Thr", "control", 0);
+	//Create track bar for thr
+	int C_Thr = 43;
+	createTrackbar("0.01*C_Thr", "control", &C_Thr, 100);
+	cvSetTrackbarMin("0.01*C_Thr", "control", 0);
 
-    //Create track bar for Orientation thr
-    int LowThr = 35;
-    int HighThr = 57;
-    createTrackbar("LowThr", "control", &LowThr, 180);
-    createTrackbar("HighThr", "control", &HighThr, 180);
+	//Create track bar for Orientation thr
+	int LowThr = 35;
+	int HighThr = 57;
+	createTrackbar("LowThr", "control", &LowThr, 180);
+	createTrackbar("HighThr", "control", &HighThr, 180);
 
-    //Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\6.bmp");
-    Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
-	//Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\7.bmp");
-    
-    Mat imgGray;
-    cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);
+	Mat imgOriginal = imread("D:\\home\\programming\\vc\\new\\6_My home projects\\4_GST\\input\\segm1.bmp");
 
-    while (true)
-    {
-        Mat imgCoherency, imgOrientation;
-        calcGST(imgGray, imgCoherency, imgOrientation, W);
+	Mat imgGray;
+	cvtColor(imgOriginal, imgGray, COLOR_BGR2GRAY);
 
-        Mat imgCoherencyBin;
-        imgCoherencyBin = imgCoherency > C_Thr / 100.0;
-        //threshold(imgCoherency, imgCoherencyBin, C_Thr/100.0, 255, THRESH_BINARY);	//dst	output array of the same size and type and the same number of channels as src.
+	while (true)
+	{
+		//! [main]
+		Mat imgCoherency, imgOrientation;
+		calcGST(imgGray, imgCoherency, imgOrientation, W);
 
-        Mat imgOrientationBin;
-        inRange(imgOrientation, Scalar(LowThr), Scalar(HighThr), imgOrientationBin);
+		//! [thresholding]
+		Mat imgCoherencyBin;
+		imgCoherencyBin = imgCoherency > C_Thr / 100.0;
+		Mat imgOrientationBin;
+		inRange(imgOrientation, Scalar(LowThr), Scalar(HighThr), imgOrientationBin);
+		//! [thresholding]
 
-        Mat imgBin;
-        imgBin = imgCoherencyBin & imgOrientationBin;
+		//! [combining]
+		Mat imgBin;
+		imgBin = imgCoherencyBin & imgOrientationBin;
+		//! [combining]
+		//! [main]
 
-        normalize(imgCoherency, imgCoherency, 0, 1, NORM_MINMAX);
-        normalize(imgOrientation, imgOrientation, 0, 1, NORM_MINMAX);
-        imshow("imgOriginal", 0.5*(imgGray + imgBin));
-        imshow("Coherency", imgCoherency);
-        imshow("Orientation", imgOrientation);
-        imshow("CoherencyBinary", imgCoherencyBin);
-        imshow("OrientationBinary", imgOrientationBin);
-        imshow("Mask", imgBin);
+		normalize(imgCoherency, imgCoherency, 0, 1, NORM_MINMAX);
+		normalize(imgOrientation, imgOrientation, 0, 1, NORM_MINMAX);
+		imshow("imgOriginal", 0.5*(imgGray + imgBin));
+		imshow("Coherency", imgCoherency);
+		imshow("Orientation", imgOrientation);
+		imshow("CoherencyBinary", imgCoherencyBin);
+		imshow("OrientationBinary", imgOrientationBin);
+		imshow("Mask", imgBin);
 
-        // Wait until user press some key for 50ms
-        int iKey = waitKey(50);
-        //if user press 'ESC' key
-        if (iKey == 27)
-        {
+		// Wait until user press some key for 50ms
+		int iKey = waitKey(50);
+		//if user press 'ESC' key
+		if (iKey == 27)
+		{
 			imwrite("input.jpg", imgGray);
 			imwrite("result.jpg", 0.5*(imgGray + imgBin));
 
@@ -82,12 +84,13 @@ int main()
 			normalize(imgOrientation, imgOrientation, 0, 255, NORM_MINMAX);
 			imwrite("Coherency.jpg", imgCoherency);
 			imwrite("Orientation.jpg", imgOrientation);
-            break;
-        }
-    }
-    return 0;
+			break;
+		}
+	}
+	return 0;
 }
 
+//! [calcGST]
 void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, int w)
 {
 	Mat img;
@@ -151,3 +154,4 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 	cout << "imgOrientationOut minVal = " << minVal << ";    imgOrientationOut maxVal = " << maxVal << endl;
 	cout << endl;
 }
+//! [calcGST]

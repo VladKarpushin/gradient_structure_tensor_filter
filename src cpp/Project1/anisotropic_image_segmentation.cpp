@@ -84,7 +84,7 @@ void calcGST(const Mat& inputImg, Mat& imgCoherencyOut, Mat& imgOrientationOut, 
 	Mat lambda1, lambda2;
 	lambda1 = tmp1 + tmp4;		// biggest eigenvalue 
 	lambda2 = tmp1 - tmp4;		// smallest eigenvalue
-								// eigenvalue calculation (stop)
+	// eigenvalue calculation (stop)
 
 	// Coherency calculation (start)
 	// Coherency = (lambda1 - lambda2)/(lambda1 + lambda2)) - measure of anisotropism

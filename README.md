@@ -23,3 +23,5 @@ Below you can see input anisotropic image.
 Below you can see segmentation result. The result was completed by W = 53, THR = 0.43, Angle = [35...57].
 
 ![The restored image of the black car license plate](/www/images/result.jpg)
+
+You can also find a quick video demonstration of GST using on [YouTube](https://youtu.be/SJq6j3i0oWM).
